@@ -22,21 +22,22 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
+      - name: Build images
+        run: docker compose build
       - name: Start services
-        run: docker compose up -d --build
+        run: docker compose up -d
       - name: Wait for frontend to be ready
         run: |
-          for i in $(seq 1 15); do
-            if curl -sf http://localhost:8080/healthz; then
-              echo "Frontend is ready!"
-              break
-            fi
-            echo "Waiting... ($i/15)"
-            sleep 2
-          done
+          echo "Waiting for frontend..."
+          timeout 60 bash -c 'until curl -sf http://localhost:8080/healthz; do sleep 2; done' \
+            || { echo "Frontend did not become ready in time"; docker compose logs; exit 1; }
       - name: Run smoke test
         run: bash scripts/smoke-test.sh http://localhost:8080
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs
       - name: Tear down
+        if: always()
         run: docker compose down
 
   build-and-push:
@@ -74,7 +75,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install kubectl
-        uses: azure/setup-kubectl@v4
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/kubectl
       - name: Write kubeconfig
         run: echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
       - name: Deploy to Kubernetes
