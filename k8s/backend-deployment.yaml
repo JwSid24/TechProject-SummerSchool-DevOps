@@ -17,3 +17,6 @@ spec:
           image: ghcr.io/<YOUR_GITHUB_USERNAME>/fortune-backend:latest
           ports:
             - containerPort: 9000
+          env:
+            - name: REDIS_DNS
+              value: redis
