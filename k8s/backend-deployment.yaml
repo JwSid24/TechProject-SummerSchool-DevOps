@@ -15,6 +15,7 @@ spec:
       containers:
         - name: backend
           image: ghcr.io/jwsid24/fortune-backend:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 9000
           env:

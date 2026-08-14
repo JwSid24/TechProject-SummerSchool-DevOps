@@ -77,12 +77,17 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      - name: Install kubectl
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+      - name: Build images into minikube
         run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/kubectl
-      - name: Write kubeconfig
-        run: echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+          eval $(minikube -p minikube docker-env)
+          docker build -t ghcr.io/jwsid24/fortune-backend:latest ./backend
+          docker build -t ghcr.io/jwsid24/fortune-frontend:latest ./frontend
       - name: Deploy to Kubernetes
-        run: kubectl --kubeconfig kubeconfig apply -f k8s/
+        run: kubectl apply -f k8s/
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/backend --timeout=90s
+          kubectl rollout status deployment/frontend --timeout=90s
+          kubectl rollout status deployment/redis --timeout=90s
