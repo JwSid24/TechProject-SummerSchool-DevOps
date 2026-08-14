@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/<YOUR_GITHUB_USERNAME>/fortune-backend:latest
+          image: ghcr.io/jwsid24/fortune-backend:latest
           ports:
             - containerPort: 9000
           env:

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/<YOUR_GITHUB_USERNAME>/fortune-frontend:latest
+          image: ghcr.io/jwsid24/fortune-frontend:latest
           ports:
             - containerPort: 8080
           env:
