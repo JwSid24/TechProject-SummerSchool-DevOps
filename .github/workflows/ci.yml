@@ -27,7 +27,10 @@ jobs:
       - name: Wait for frontend to be ready
         run: |
           for i in $(seq 1 15); do
-            curl -sf http://localhost:8080/healthz && break
+            if curl -sf http://localhost:8080/healthz; then
+              echo "Frontend is ready!"
+              break
+            fi
             echo "Waiting... ($i/15)"
             sleep 2
           done
@@ -70,6 +73,8 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
       - name: Write kubeconfig
         run: echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
       - name: Deploy to Kubernetes
